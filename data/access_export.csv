@@ -1,0 +1,8 @@
+user_id,name,role,system,group,last_reviewed,privileged
+U1001,J. Smith,Nurse,Epic Hyperspace,EHR_ClinicalUser,2025-01-15,False
+U1001,J. Smith,Nurse,Active Directory,Domain_Admins,2025-01-15,True
+U1002,T. Ray,IT_Analyst,SailPoint,IT_Support,2025-06-01,False
+U1002,T. Ray,IT_Analyst,Entra ID,IT_Support,2025-06-01,False
+U1003,M. Chen,IT_Admin,Active Directory,Domain_Admins,2025-03-10,True
+U1004,K. Patel,Nurse,Citrix VDI,EHR_ClinicalUser,2024-11-02,False
+U1005,R. Lopez,IT_Analyst,Cisco ISE,IT_Support,2024-09-15,False

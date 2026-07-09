@@ -1,0 +1,17 @@
+{
+  "Nurse": {
+    "expected_systems": ["Epic Hyperspace", "Citrix VDI"],
+    "expected_groups": ["EHR_ClinicalUser", "VPN_Standard"],
+    "max_privileged_access": false
+  },
+  "IT_Analyst": {
+    "expected_systems": ["Active Directory", "SailPoint", "Entra ID"],
+    "expected_groups": ["IT_Support", "VPN_Standard"],
+    "max_privileged_access": false
+  },
+  "IT_Admin": {
+    "expected_systems": ["Active Directory", "SailPoint", "Entra ID", "Cisco ISE"],
+    "expected_groups": ["Domain_Admins", "VPN_Standard"],
+    "max_privileged_access": true
+  }
+}
