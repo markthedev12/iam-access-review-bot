@@ -1,32 +1,30 @@
 # IAM Access Review Bot
 
-Automated access certification tool that flags excess, stale, and privileged access against defined role baselines mirroring the logic behind SailPoint IdentityNow entitlement review campaigns.
+Access certification tool that compares actual user access to defined role baselines, flags excess, stale and privileged access, and produces a risk scored HTML report for reviewers.
 
-## The Problem
+> Personal lab project using sample data. It is inspired by entitlement review campaigns in identity governance tools and is not connected to any of them.
 
-Manual access certification reviews are slow, inconsistent, and easy to get wrong at scale. IAM teams need a repeatable way to answer: *does this person's access still match what their role should have?* This tool automates that comparison and produces a certification ready report.
+## The problem
 
-## What It Does
+Manual access reviews are slow and inconsistent at scale. Reviewers need a repeatable answer to one question: does this person still have the access their role calls for?
 
-Given a role baseline (what access each role *should* have) and an access export (what access users *actually* have), the tool flags three types of issues:
+## What it does
 
-- **Excess access** — a system or group not expected for the user's role
-- **Stale access** — entitlements not reviewed in over 90 days
-- **Privilege violation** — privileged access granted to a role that shouldn't have it
+Given a **role baseline** (what each role should have) and an **access export** (what users actually have), the tool flags three kinds of issues:
 
-Each flag is risk-scored (low/medium/high) with a recommended action (re-certify, escalate, or revoke immediately), and the results are compiled into an HTML report.
+| Flag | Meaning |
+| --- | --- |
+| Excess access | A system or group not expected for the role |
+| Stale access | An entitlement not reviewed in more than 90 days |
+| Privilege violation | Privileged access granted to a role that should not have it |
 
-## Example Output
+Each flag gets a risk level (low, medium or high) and a recommended action: re-certify, escalate or revoke immediately. Results are compiled into an HTML report.
 
-![Access Review Report](docs/report_screenshot.png)
+## Example output
 
-## Tech Stack
+![Access review report](docs/report_screenshot.png)
 
-- Python 3.14
-- pandas — data handling
-- Jinja2 — HTML report templating
-
-## How to Run
+## Quick start
 
 ```bash
 git clone https://github.com/markthedev12/iam-access-review-bot.git
@@ -37,23 +35,43 @@ pip install -r requirements.txt
 python3 main.py
 ```
 
-Output is saved to `access_review_report.html` in the project root.
+The report is saved as `access_review_report.html` in the project root.
 
-## Project Structure
+## Project structure
 
-├── data/                  # Sample role baseline + access export
-├── src/
-│   ├── models.py          # Core data classes (User, Entitlement, Flag)
-│   ├── loader.py          # CSV/JSON ingestion
-│   ├── review_engine.py   # Flagging logic
-│   └── report_generator.py # HTML report rendering
-├── templates/              # Jinja2 report template
-├── tests/                  # Unit tests
-└── main.py                 # Entry point
+```
+data/                  Sample role baseline and access export
+src/
+  models.py            Data classes (User, Entitlement, Flag)
+  loader.py            CSV and JSON ingestion
+  review_engine.py     Flagging logic
+  report_generator.py  HTML report rendering
+templates/             Jinja2 report template
+tests/                 Unit tests
+main.py                Entry point
+```
 
-## Why I Built This
+## Tech stack
 
-IAM governance is the part of security that doesn't get talked about enough. It's not flashy, but it's where the real risk lives. Every breach post-mortem eventually traces back to someone having access they shouldn't have had. I wanted to understand that problem from the inside, not just read about it, so I built the tool that actually does the work: comparing real access against what access should look like, and surfacing the gap.
+Python, pandas for data handling, Jinja2 for report templating.
 
-This project came out of studying for CompTIA CySA+ and going deeper on SailPoint IdentityNow concepts. I wanted something that forced me to think through entitlement review logic end to end instead of just memorizing exam material. Working around SailPoint and Entra ID daily gave me the instinct for what a real access review actually needs to catch; building this was about proving I could translate that into a working project.
+## Limitations
 
+* Runs on sample data only. It does not pull from a live identity system.
+* The stale threshold and risk rules are fixed defaults.
+* It supports the three flag types above and nothing else.
+
+## What I would do next
+
+- [ ] Make the stale threshold and risk rules configurable
+- [ ] Run the tests in GitHub Actions and add a badge
+- [ ] Export findings as CSV and JSON as well as HTML
+- [ ] Pull real access data from AWS IAM with boto3
+
+## Why I built this
+
+Access governance is where a lot of real breach risk sits: people keeping access they should no longer have. I work with identity and access issues day to day, and I wanted to build the logic of an access review end to end instead of only using tools that do it.
+
+## Author
+
+Mark Schwinn · [Website](https://markschwinn.com) · [LinkedIn](https://www.linkedin.com/in/mark-schwinn-994625362/)
