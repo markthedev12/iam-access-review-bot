@@ -53,7 +53,29 @@ main.py                Entry point
 
 ## Tech stack
 
-Python, pandas for data handling, Jinja2 for report templating.
+Python 3.12+, the standard-library CSV/JSON readers, and Jinja2 for report templating.
+
+## Tests and security design
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Tests cover the 90-day review boundary, unknown roles, multiple simultaneous
+findings, privileged-role permissions, HTML injection, Unicode, and template
+loading outside the repository. GitHub Actions runs them on Python 3.12 and 3.13.
+
+The review engine accepts an optional `today` date so historical reviews and
+tests can be reproduced. It returns findings without writing files; the report
+generator handles presentation separately. HTML autoescaping treats imported
+names, identifiers, and details as text rather than executable markup. Templates
+are resolved relative to the module, and reports are written as UTF-8.
+
+Reports may contain sensitive identity information. Use fictional exports in
+public demos. Findings are review prompts, not compliance certifications or
+authorization to automatically revoke access. Baselines currently validate
+systems and groups independently; explicit system/group pairs and strict CSV
+validation are follow-up work.
 
 ## Limitations
 
@@ -64,7 +86,7 @@ Python, pandas for data handling, Jinja2 for report templating.
 ## What I would do next
 
 - [ ] Make the stale threshold and risk rules configurable
-- [ ] Run the tests in GitHub Actions and add a badge
+- [x] Run regression tests in GitHub Actions
 - [ ] Export findings as CSV and JSON as well as HTML
 - [ ] Pull real access data from AWS IAM with boto3
 

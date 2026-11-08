@@ -59,9 +59,9 @@ def review_user(user: User, baseline: dict, today: date | None = None) -> list[F
     return flags
 
 
-def review_all_users(users: list[User], baseline: dict) -> list[Flag]:
+def review_all_users(users: list[User], baseline: dict, today: date | None = None) -> list[Flag]:
     """Run review_user across every user and combine all flags."""
     all_flags: list[Flag] = []
     for user in users:
-        all_flags.extend(review_user(user, baseline))
+        all_flags.extend(review_user(user, baseline, today=today))
     return all_flags
