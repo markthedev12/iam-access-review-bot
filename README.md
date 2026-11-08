@@ -1,77 +1,65 @@
 # IAM Access Review Bot
 
-Access certification tool that compares actual user access to defined role baselines, flags excess, stale and privileged access, and produces a risk scored HTML report for reviewers.
-
-> Personal lab project using sample data. It is inspired by entitlement review campaigns in identity governance tools and is not connected to any of them.
-
-## The problem
-
-Manual access reviews are slow and inconsistent at scale. Reviewers need a repeatable answer to one question: does this person still have the access their role calls for?
-
-## What it does
-
-Given a **role baseline** (what each role should have) and an **access export** (what users actually have), the tool flags three kinds of issues:
-
-| Flag | Meaning |
-| --- | --- |
-| Excess access | A system or group not expected for the role |
-| Stale access | An entitlement not reviewed in more than 90 days |
-| Privilege violation | Privileged access granted to a role that should not have it |
-
-Each flag gets a risk level (low, medium or high) and a recommended action: re-certify, escalate or revoke immediately. Results are compiled into an HTML report.
-
-## Example output
-
-![Access review report](docs/report_screenshot.png)
+A Python tool that compares a CSV access export with JSON role baselines and
+renders HTML findings for human review. Uses fictional data, with no live
+identity-system connection or automatic access changes.
 
 ## Quick start
 
-```bash
-git clone https://github.com/markthedev12/iam-access-review-bot.git
-cd iam-access-review-bot
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python3 main.py
+Requires Python 3.12+.
+
+```sh
+python -m venv .venv
+# Windows: .venv\Scripts\Activate.ps1
+# macOS/Linux: source .venv/bin/activate
+python -m pip install -r requirements.txt
+python main.py --as-of 2026-11-08
+python -m unittest discover -s tests -v
 ```
 
-The report is saved as `access_review_report.html` in the project root.
+Open `access_review_report.html` in your browser. Default sample paths resolve
+relative to the program, while output defaults to your working directory. Use
+`--input`, `--baseline`, and `--output` to select local files. `--as-of` makes a
+review reproducible; omitting it uses today's date.
 
-## Project structure
+## Rules and data contract
 
-```
-data/                  Sample role baseline and access export
-src/
-  models.py            Data classes (User, Entitlement, Flag)
-  loader.py            CSV and JSON ingestion
-  review_engine.py     Flagging logic
-  report_generator.py  HTML report rendering
-templates/             Jinja2 report template
-tests/                 Unit tests
-main.py                Entry point
-```
+| Finding | Condition | Risk |
+| --- | --- | --- |
+| Excess access | System or group absent from a role baseline; unknown role needs review | Medium |
+| Stale access | More than 90 days since last review; exactly 90 is not stale | Low |
+| Privilege violation | Privileged entitlement for a role that does not permit it | High |
 
-## Tech stack
+CSV headers: `user_id,name,role,system,group,last_reviewed,privileged`.
+Required values must be non-empty, dates must use YYYY-MM-DD, and privileged
+must be true/false (case-insensitive). Conflicting names/roles for one user ID
+are rejected instead of silently using the first row. UTF-8/BOM input is supported.
 
-Python, pandas for data handling, Jinja2 for report templating.
+JSON maps roles to `expected_systems`, `expected_groups` (string lists), and
+`max_privileged_access` (a JSON boolean). See `data/` for complete examples.
+Invalid input exits 2 without generating a new report; an older report may still
+exist. Successful generation exits 0 even with findings.
 
-## Limitations
+## Architecture and security
 
-* Runs on sample data only. It does not pull from a live identity system.
-* The stale threshold and risk rules are fixed defaults.
-* It supports the three flag types above and nothing else.
+`CSV + JSON -> validated models -> pure review engine -> escaped HTML`
 
-## What I would do next
+`src/loader.py` owns ingestion; `models.py` holds data classes;
+`review_engine.py` computes findings; `report_generator.py` renders the template.
+Jinja2 autoescaping prevents imported identifiers/names/details becoming HTML,
+and reports use UTF-8. Tests cover rule boundaries, ingestion failures,
+reproducible dates, Unicode, template paths and injected markup. CI runs Python
+3.12/3.13 without external services.
 
-- [ ] Make the stale threshold and risk rules configurable
-- [ ] Run the tests in GitHub Actions and add a badge
-- [ ] Export findings as CSV and JSON as well as HTML
-- [ ] Pull real access data from AWS IAM with boto3
+## Limits and roadmap
 
-## Why I built this
+Reports contain identity data; use fictional exports publicly and keep real
+reports out of Git. Risk labels and recommended actions are illustrative review
+prompts, not compliance certification or permission to revoke access.
 
-Access governance is where a lot of real breach risk sits: people keeping access they should no longer have. I work with identity and access issues day to day, and I wanted to build the logic of an access review end to end instead of only using tools that do it.
-
-## Author
-
-Mark Schwinn · [Website](https://markschwinn.com) · [LinkedIn](https://www.linkedin.com/in/mark-schwinn-994625362/)
+Systems and groups are currently validated independently, not as allowed pairs.
+Unknown roles return one review finding rather than evaluating other rules.
+Duplicate rows are not deduplicated and future review dates are not rejected.
+Next: explicit entitlement pairs, configurable policies, better date handling,
+and JSON/CSV finding exports. Contributions should include a regression fixture
+and explain the intended reviewer outcome.
